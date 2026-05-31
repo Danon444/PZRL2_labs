@@ -27,24 +27,33 @@ void HashTable::insert(const KeyType &key, const ValueType &value)
 			return;
 		}
 	}
-	if (table[bucket].empty())
-	{
-		++_filled;
-	}
 	table[bucket].push_back({key, value});
+	++_filled;
 	if (getLoadFactor() > 0.75)
 	{
-		auto oldTable = table;
-		_capacity *= 2;
-		table.clear();
-		table.resize(_capacity);
-		_filled = 0;
-		for (auto& bucket : oldTable)
+		rehash();
+	}
+}
+
+void HashTable::rehash()
+{
+	auto oldTable = table;
+	_capacity *= 2;
+	table.clear();
+	table.resize(_capacity);
+
+	_filled = 0;
+
+	for (const auto& bucket : oldTable)
+	{
+		for (const auto& elem : bucket)
 		{
-			for (auto& elem : bucket)
+			size_t newBucket = hash_function(elem.first);
+			if (table[newBucket].empty())
 			{
-				insert(elem.first, elem.second);
+				++_filled;
 			}
+			table[newBucket].push_back(elem);
 		}
 	}
 }
@@ -71,10 +80,7 @@ void HashTable::remove(const KeyType &key)
 		if (it->first == key)
 		{
 			table[bucket].erase(it);
-			if (table[bucket].empty())
-			{
-				--_filled;
-			}
+			--_filled;
 			return;
 		}
 	}
@@ -95,5 +101,5 @@ ValueType& HashTable::operator[](const KeyType &key)
 
 double HashTable::getLoadFactor()
 {
-	return _filled / _capacity;
+	return static_cast<double>(_filled) / _capacity;
 }
