@@ -65,7 +65,7 @@ bool HashTable::find(const KeyType &key, ValueType &value) const
 	{
 		if (elem.first == key)
 		{
-			value = elem.second;		//присваивать или проверить
+			value = elem.second;
 			return true;
 		}
 	}
